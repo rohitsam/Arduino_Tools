@@ -12,6 +12,7 @@ from argparse import RawTextHelpFormatter
 mcu_file = ""
 mcu_list = []  # 'name'
 io_list = []  # 'PIN','name'
+alt_list = []  # 'PIN','name'
 adclist = []  # 'PIN','name','ADCSignal'
 daclist = []  # 'PIN','name','DACSignal'
 i2cscl_list = []  # 'PIN','name','I2CSCLSignal'
@@ -163,12 +164,16 @@ def isPinAndSignalInList(pin, signal, lst):
 
 
 def store_pin(pin, name):
-    if pin in [p[0] for p in io_list]:
+    if "_ALT" in pin:
+        dest_list = alt_list
+    else:
+        dest_list = io_list
+    if pin in [p[0] for p in dest_list]:
         return
     # store pin I/O
     p = [pin, name]
-    if p not in io_list:
-        io_list.append(p)
+    if p not in dest_list:
+        dest_list.append(p)
 
 
 # function to store ADC list
@@ -323,8 +328,14 @@ def print_header():
 #include "%s.h"
 
 /* =====
- * Note: Commented lines are alternative possibilities which are not used per default.
- *       If you change them, you will have to know what you do
+ * Notes:
+ * - The pins mentioned Px_y_ALTz are alternative possibilities which use other
+ *   HW peripheral instances. You can use them the same way as any other "normal"
+ *   pin (i.e. analogWrite(PA7_ALT0, 128);). These pins are not available thanks
+ *   pin number (Dx or x).
+ *
+ * - Commented lines are alternative possibilities which are not used per default.
+ *   If you change them, you will have to know what you do
  * =====
  */
 """ % (
@@ -393,6 +404,7 @@ def print_all_lists():
     if print_list_header("SD", "SD", "SD", sd_list):
         print_sd()
     # Print specific PinNames in header file
+    print_alt_h()
     print_syswkup_h()
     print_usb_h()
 
@@ -449,9 +461,19 @@ def print_adc():
         s_pin_data += "_ADC_CONTROL"
     s_pin_data += ", GPIO_NOPULL, 0, "
 
+    prev_p = ""
+    alt_index = 0
+
     for p in adclist:
         if "IN" in p[2]:
-            s1 = "%-10s" % ("  {" + p[0] + ",")
+            if p[0] == prev_p:
+                p[0] += "_ALT%d" % alt_index
+                alt_index += 1
+                store_pin(p[0], p[1])
+            else:
+                prev_p = p[0]
+                alt_index = 0
+            s1 = "%-15s" % ("  {" + p[0] + ",")
             a = p[2].split("_")
             inst = a[0].replace("ADC", "")
             if len(inst) == 0:
@@ -462,7 +484,7 @@ def print_adc():
             s1 += ", 0)}, // " + p[2] + "\n"
             out_c_file.write(s1)
     out_c_file.write(
-        """  {NC,    NP,    0}
+        """  {NC,         NP,    0}
 };
 #endif
 """
@@ -502,9 +524,18 @@ def print_dac():
 
 
 def print_i2c(lst):
+    prev_p = ""
+    alt_index = 0
     for p in lst:
         result = get_gpio_af_num(p[1], p[2])
-        s1 = "%-10s" % ("  {" + p[0] + ",")
+        if p[0] == prev_p:
+            p[0] += "_ALT%d" % alt_index
+            store_pin(p[0], p[1])
+            alt_index += 1
+        else:
+            prev_p = p[0]
+            alt_index = 0
+        s1 = "%-15s" % ("  {" + p[0] + ",")
         # 2nd element is the I2C XXX signal
         b = p[2].split("_")[0]
         s1 += (
@@ -517,7 +548,7 @@ def print_i2c(lst):
             s2 = s1 + af + ")},\n"
             out_c_file.write(s2)
     out_c_file.write(
-        """  {NC,    NP,    0}
+        """  {NC,         NP,    0}
 };
 #endif
 """
@@ -525,9 +556,18 @@ def print_i2c(lst):
 
 
 def print_pwm():
+    prev_p = ""
+    alt_index = 0
     for p in pwm_list:
         result = get_gpio_af_num(p[1], p[2])
-        s1 = "%-10s" % ("  {" + p[0] + ",")
+        if p[0] == prev_p:
+            p[0] += "_ALT%d" % alt_index
+            store_pin(p[0], p[1])
+            alt_index += 1
+        else:
+            prev_p = p[0]
+            alt_index = 0
+        s1 = "%-15s" % ("  {" + p[0] + ",")
         # 2nd element is the PWM signal
         a = p[2].split("_")
         inst = a[0]
@@ -546,7 +586,7 @@ def print_pwm():
             s2 = s1 + af + ", " + chan + neg + ")}, // " + p[2] + "\n"
             out_c_file.write(s2)
     out_c_file.write(
-        """  {NC,    NP,    0}
+        """  {NC,         NP,    0}
 };
 #endif
 """
@@ -554,9 +594,18 @@ def print_pwm():
 
 
 def print_uart(lst):
+    prev_p = ""
+    alt_index = 0
     for p in lst:
         result = get_gpio_af_num(p[1], p[2])
-        s1 = "%-10s" % ("  {" + p[0] + ",")
+        if p[0] == prev_p:
+            p[0] += "_ALT%d" % alt_index
+            store_pin(p[0], p[1])
+            alt_index += 1
+        else:
+            prev_p = p[0]
+            alt_index = 0
+        s1 = "%-15s" % ("  {" + p[0] + ",")
         # 2nd element is the UART_XX signal
         b = p[2].split("_")[0]
         s1 += "%-9s" % (b[: len(b) - 1] + b[len(b) - 1 :] + ",")
@@ -569,7 +618,7 @@ def print_uart(lst):
             s2 = s1 + af + ")},\n"
             out_c_file.write(s2)
     out_c_file.write(
-        """  {NC,    NP,    0}
+        """  {NC,         NP,    0}
 };
 #endif
 """
@@ -577,9 +626,18 @@ def print_uart(lst):
 
 
 def print_spi(lst):
+    prev_p = ""
+    alt_index = 0
     for p in lst:
         result = get_gpio_af_num(p[1], p[2])
-        s1 = "%-10s" % ("  {" + p[0] + ",")
+        if p[0] == prev_p:
+            p[0] += "_ALT%d" % alt_index
+            store_pin(p[0], p[1])
+            alt_index += 1
+        else:
+            prev_p = p[0]
+            alt_index = 0
+        s1 = "%-15s" % ("  {" + p[0] + ",")
         # 2nd element is the SPI_XXXX signal
         instance = p[2].split("_")[0].replace("SPI", "")
         s1 += "SPI" + instance + ", STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, "
@@ -666,6 +724,23 @@ def print_qspi():
 #endif
 """
     )
+
+
+def print_alt_h():
+    if len(alt_list) == 0:
+        out_h_file.write("/* No alternate */\n")
+    else:
+        out_h_file.write("/* Alternate pin name */\n")
+        # print pin name under switch
+        for p in alt_list:
+            if "_ALT" in p[0]:
+                s1 = "  %-10s = %-5s | %s,\n" % (
+                    p[0],
+                    p[0].split("_A")[0],
+                    p[0].split("_")[2],
+                )
+                out_h_file.write(s1)
+    out_h_file.write("\n")
 
 
 def print_syswkup_h():
@@ -832,6 +907,7 @@ def sort_my_lists():
 
 def clean_all_lists():
     del io_list[:]
+    del alt_list[:]
     del adclist[:]
     del daclist[:]
     del i2cscl_list[:]
@@ -1042,8 +1118,8 @@ for mcu_file in mcu_list:
     print_header()
     print_all_lists()
 
-    nb_pin = len(io_list)
-    print(" * I/O pins found: %i" % nb_pin)
+    print(" * I/O pins found: %i" % len(io_list))
+    print(" * I/O ALT pins found: %i" % len(alt_list))
     # io_list.sort(key=natural_sortkey)
     # for io in io_list:
     #     print(io[0] + ", " + io[1])
