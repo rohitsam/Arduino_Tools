@@ -1,3 +1,5 @@
+/* No alternate */
+
 /* SYS_WKUP */
 #ifdef PWR_WAKEUP_PIN1
   SYS_WKUP1 = PA_0,
