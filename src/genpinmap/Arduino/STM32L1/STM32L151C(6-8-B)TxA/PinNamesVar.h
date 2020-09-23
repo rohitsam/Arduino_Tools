@@ -1,10 +1,11 @@
+
 /* Alternate pin name */
-  PA_2_ALT0  = PA_2  | ALT0,
-  PA_3_ALT0  = PA_3  | ALT0,
-  PA_6_ALT0  = PA_6  | ALT0,
-  PA_7_ALT0  = PA_7  | ALT0,
-  PB_8_ALT0  = PB_8  | ALT0,
-  PB_9_ALT0  = PB_9  | ALT0,
+  PA_2_ALT0    = PA_2    | ALT0,
+  PA_3_ALT0    = PA_3    | ALT0,
+  PA_6_ALT0    = PA_6    | ALT0,
+  PA_7_ALT0    = PA_7    | ALT0,
+  PB_8_ALT0    = PB_8    | ALT0,
+  PB_9_ALT0    = PB_9    | ALT0,
 
 /* SYS_WKUP */
 #ifdef PWR_WAKEUP_PIN1
