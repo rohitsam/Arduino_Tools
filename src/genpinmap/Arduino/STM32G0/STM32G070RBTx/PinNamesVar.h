@@ -1,4 +1,6 @@
 /* Alternate pin name */
+  PA_9_ALTR  = PA_9  | ALTR,
+  PA_10_ALTR = PA_10 | ALTR,
   PA_6_ALT0  = PA_6  | ALT0,
   PA_7_ALT0  = PA_7  | ALT0,
   PA_7_ALT1  = PA_7  | ALT1,

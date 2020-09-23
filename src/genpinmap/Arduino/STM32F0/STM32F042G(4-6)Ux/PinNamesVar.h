@@ -1,4 +1,6 @@
 /* Alternate pin name */
+  PA_11_ALTR = PA_11 | ALTR,
+  PA_12_ALTR = PA_12 | ALTR,
   PA_6_ALT0  = PA_6  | ALT0,
   PA_7_ALT0  = PA_7  | ALT0,
   PA_7_ALT1  = PA_7  | ALT1,
@@ -35,8 +37,8 @@
 /* USB */
 #ifdef USBCON
   USB_NOE = PA_4,
-  USB_DM = PA_11,
-  USB_DP = PA_12,
+  USB_DM = PA_11_ALTR,
+  USB_DP = PA_12_ALTR,
   USB_NOE = PA_13,
   USB_NOE = PA_15,
 #endif
