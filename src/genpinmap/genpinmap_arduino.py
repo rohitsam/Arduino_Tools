@@ -163,11 +163,6 @@ def get_gpio_af_numF1(pintofind, iptofind):
     return mygpioaf
 
 
-# Return 0 if pin/signal not already in the list
-def isPinAndSignalInList(pin, signal, lst):
-    return len([item for item in lst if item[0] == pin and item[2] == signal])
-
-
 def store_pin(pin, name):
     if "_ALT" in pin:
         dest_list = alt_list
@@ -183,15 +178,11 @@ def store_pin(pin, name):
 
 # function to store ADC list
 def store_adc(pin, name, signal):
-    if isPinAndSignalInList(pin, signal, adclist):
-        return
     adclist.append([pin, name, signal])
 
 
 # function to store DAC list
 def store_dac(pin, name, signal):
-    if isPinAndSignalInList(pin, signal, daclist):
-        return
     daclist.append([pin, name, signal])
 
 
@@ -199,107 +190,69 @@ def store_dac(pin, name, signal):
 def store_i2c(pin, name, signal):
     # is it SDA or SCL ?
     if "_SCL" in signal:
-        if isPinAndSignalInList(pin, signal, i2cscl_list):
-            return
         i2cscl_list.append([pin, name, signal])
     if "_SDA" in signal:
-        if isPinAndSignalInList(pin, signal, i2csda_list):
-            return
         i2csda_list.append([pin, name, signal])
 
 
 # function to store timers
 def store_pwm(pin, name, signal):
     if "_CH" in signal:
-        if isPinAndSignalInList(pin, signal, pwm_list):
-            return
         pwm_list.append([pin, name, signal])
 
 
 # function to store Uart pins
 def store_uart(pin, name, signal):
+    # print("pin %s, name %s, signal %s" % (pin, name, signal))
+
     if "_TX" in signal:
-        if isPinAndSignalInList(pin, signal, uarttx_list):
-            return
         uarttx_list.append([pin, name, signal])
     if "_RX" in signal:
-        if isPinAndSignalInList(pin, signal, uartrx_list):
-            return
         uartrx_list.append([pin, name, signal])
     if "_CTS" in signal:
-        if isPinAndSignalInList(pin, signal, uartcts_list):
-            return
         uartcts_list.append([pin, name, signal])
     if "_RTS" in signal:
-        if isPinAndSignalInList(pin, signal, uartrts_list):
-            return
         uartrts_list.append([pin, name, signal])
 
 
 # function to store SPI pins
 def store_spi(pin, name, signal):
     if "_MISO" in signal:
-        if isPinAndSignalInList(pin, signal, spimiso_list):
-            return
         spimiso_list.append([pin, name, signal])
     if "_MOSI" in signal:
-        if isPinAndSignalInList(pin, signal, spimosi_list):
-            return
         spimosi_list.append([pin, name, signal])
     if "_SCK" in signal:
-        if isPinAndSignalInList(pin, signal, spisclk_list):
-            return
         spisclk_list.append([pin, name, signal])
     if "_NSS" in signal:
-        if isPinAndSignalInList(pin, signal, spissel_list):
-            return
         spissel_list.append([pin, name, signal])
 
 
 # function to store CAN pins
 def store_can(pin, name, signal):
     if "_RX" in signal:
-        if isPinAndSignalInList(pin, signal, canrd_list):
-            return
         canrd_list.append([pin, name, signal])
     if "_TX" in signal:
-        if isPinAndSignalInList(pin, signal, cantd_list):
-            return
         cantd_list.append([pin, name, signal])
 
 
 # function to store ETH list
 def store_eth(pin, name, signal):
-    if isPinAndSignalInList(pin, signal, eth_list):
-        return
     eth_list.append([pin, name, signal])
 
 
 # function to store QSPI pins
 def store_qspi(pin, name, signal):
     if "_IO0" in signal:
-        if isPinAndSignalInList(pin, signal, quadspidata0_list):
-            return
         quadspidata0_list.append([pin, name, signal])
     if "_IO1" in signal:
-        if isPinAndSignalInList(pin, signal, quadspidata1_list):
-            return
         quadspidata1_list.append([pin, name, signal])
     if "_IO2" in signal:
-        if isPinAndSignalInList(pin, signal, quadspidata2_list):
-            return
         quadspidata2_list.append([pin, name, signal])
     if "_IO3" in signal:
-        if isPinAndSignalInList(pin, signal, quadspidata3_list):
-            return
         quadspidata3_list.append([pin, name, signal])
     if "_CLK" in signal:
-        if isPinAndSignalInList(pin, signal, quadspisclk_list):
-            return
         quadspisclk_list.append([pin, name, signal])
     if "_NCS" in signal:
-        if isPinAndSignalInList(pin, signal, quadspissel_list):
-            return
         quadspissel_list.append([pin, name, signal])
 
 
@@ -307,32 +260,21 @@ def store_qspi(pin, name, signal):
 def store_sys(pin, name, signal):
     if "_WKUP" in signal:
         signal = signal.replace("PWR", "SYS")
-        if isPinAndSignalInList(pin, signal, syswkup_list):
-            return
         syswkup_list.append([pin, name, signal])
 
 
 # function to store USB pins
 def store_usb(pin, name, signal):
     if "OTG" not in signal:
-        if isPinAndSignalInList(pin, signal, usb_list):
-            return
         usb_list.append([pin, name, signal])
     if signal.startswith("USB_OTG_FS"):
-        if isPinAndSignalInList(pin, signal, usb_otgfs_list):
-            return
         usb_otgfs_list.append([pin, name, signal])
     if signal.startswith("USB_OTG_HS"):
-        if isPinAndSignalInList(pin, signal, usb_otghs_list):
-            return
         usb_otghs_list.append([pin, name, signal])
 
 
 # function to store SD pins
 def store_sd(pin, name, signal):
-    # print(pin, signal, name)
-    if isPinAndSignalInList(pin, signal, sd_list):
-        return
     sd_list.append([pin, name, signal])
 
 
@@ -1014,6 +956,8 @@ def parse_pins():
                 # pin formatted ANA_<number>: ANA_1
                 pin = m.group(0)[:3] + "_" + m.group(0)[3:]
             name = s.attributes["Name"].value.strip()  # full name: "PF0 / OSC_IN"
+            if "Variant" in s.attributes and "REMAP" in s.attributes["Variant"].value:
+                pin += "_ALTR"
             if s.attributes["Type"].value in ["I/O", "MonoIO"]:
                 store_pin(pin, name)
             else:
